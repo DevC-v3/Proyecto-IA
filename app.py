@@ -1,9 +1,16 @@
-from flask import Flask, render_template, jsonify, Response
+from flask import Flask, render_template, jsonify
 import random
 from datetime import datetime
-import time
+import os
 
 app = Flask(__name__)
+
+# Configuración para producción
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-key-please-change-in-production')
+    DEBUG = False
+
+app.config.from_object(Config)
 
 class ParkingSystem:
     def __init__(self):
@@ -67,17 +74,21 @@ def update_status():
     parking_system.update_random()
     return jsonify(parking_system.get_status())
 
-# Simular stream de video (en un caso real, aquí conectarías con OpenCV)
-@app.route('/api/video_stream')
-def video_stream():
-    def generate():
-        while True:
-            # Simular frame de video (en realidad sería un frame JPEG)
-            time.sleep(0.1)
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + b'' + b'\r\n')
-    
-    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
+# Health check para Render
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "healthy", "message": "Parking System is running"})
 
+# Manejo de errores 404
+@app.errorhandler(404)
+def not_found(error):
+    return render_template('404.html'), 404
+
+# Solo ejecutar en desarrollo
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    if os.environ.get('RENDER'):
+        # En producción, Render maneja el servidor
+        pass
+    else:
+        # En desarrollo
+        app.run(debug=True, host='0.0.0.0', port=5000)
