@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block title %}Video en Vivo - Parking System{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 px-4">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">
+                <i class="fas fa-video mr-3 text-blue-600"></i>
+                Video en Vivo del Estacionamiento
+            </h1>
+            <p class="text-gray-600 mt-2">Vista previa en tiempo real de las cámaras de vigilancia</p>
+        </div>
+        <a href="{{ url_for('dashboard') }}"
+            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center transition duration-200">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Volver al Dashboard
+        </a>
+    </div>
+
+    <!-- Grid de Cámaras -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Cámara Principal -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-900">
+                    <i class="fas fa-camera mr-2 text-blue-500"></i>
+                    Cámara Principal - Entrada
+                </h2>
+                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                    <i class="fas fa-circle mr-1"></i>En vivo
+                </span>
+            </div>
+
+            <!-- Simulación de Video Feed -->
+            <div class="bg-black rounded-lg aspect-video flex items-center justify-center relative overflow-hidden">
+                <!-- Placeholder del video -->
+                <div id="video-placeholder" class="text-white text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-video text-4xl text-gray-400"></i>
+                    </div>
+                    <p class="text-gray-400 mb-2">Simulación de video en vivo</p>
+                    <p class="text-sm text-gray-500">En una implementación real, aquí se mostraría el feed de la cámara
+                    </p>
+                </div>
+
+                <!-- Simulación de movimiento -->
+                <div id="video-simulation" class="hidden absolute inset-0">
+                    <div class="absolute w-32 h-32 bg-blue-500 rounded-full opacity-20 animate-pulse"
+                        style="top: 20%; left: 30%;"></div>
+                    <div class="absolute w-24 h-24 bg-red-500 rounded-full opacity-20 animate-pulse"
+                        style="top: 60%; left: 70%; animation-delay: 1s;"></div>
+                    <div class="absolute w-28 h-28 bg-green-500 rounded-full opacity-20 animate-pulse"
+                        style="top: 40%; left: 50%; animation-delay: 2s;"></div>
+                </div>
+            </div>
+
+            <!-- Controles de Video -->
+            <div class="flex justify-between items-center mt-4">
+                <div class="flex space-x-2">
+                    <button id="toggle-simulation"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition duration-200">
+                        <i class="fas fa-play mr-2"></i>
+                        Iniciar Simulación
+                    </button>
+
+                    <button id="fullscreen-btn"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center transition duration-200">
+                        <i class="fas fa-expand mr-2"></i>
+                        Pantalla Completa
+                    </button>
+                </div>
+
+                <div class="text-sm text-gray-500">
+                    <i class="fas fa-clock mr-1"></i>
+                    <span id="video-timer">00:00:00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cámara Secundaria -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-900">
+                    <i class="fas fa-camera mr-2 text-green-500"></i>
+                    Cámara Secundaria - Área Interior
+                </h2>
+                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                    <i class="fas fa-circle mr-1"></i>En vivo
+                </span>
+            </div>
+
+            <!-- Imagen de ejemplo del estacionamiento -->
+            <div class="bg-gray-800 rounded-lg aspect-video flex items-center justify-center overflow-hidden">
+                <img src="static\js\images\estacionamiento.png"
+                    alt="Vista del estacionamiento" class="w-full h-full object-cover">
+            </div>
+
+            <div class="mt-4 flex justify-between items-center">
+                <div class="text-sm text-gray-600">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Imagen de referencia estática
+                </div>
+                <button
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center transition duration-200">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    Actualizar
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg opacity-50 cursor-not-allowed"
+                disabled>
+                <i class="fas fa-wrench mr-2"></i>
+                En Configuración
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Información de las Cámaras -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Estatus del Sistema -->
+    <div class="bg-white rounded-xl shadow-sm border p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+            Información del Sistema
+        </h3>
+        <div class="space-y-3">
+            <div class="flex justify-between">
+                <span class="text-gray-600">Cámara principal:</span>
+                <span class="font-semibold text-green-600">Conectada</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Resolución:</span>
+                <span class="font-semibold">1080p</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">FPS:</span>
+                <span class="font-semibold">30</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Última actualización:</span>
+                <span class="font-semibold" id="system-update">--:--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detecciones Activas -->
+    <div class="bg-white rounded-xl shadow-sm border p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-motion-detector mr-2 text-green-500"></i>
+            Detecciones Activas
+        </h3>
+        <div class="space-y-2">
+            <div class="flex items-center justify-between p-2 bg-green-50 rounded">
+                <div class="flex items-center">
+                    <i class="fas fa-car text-green-600 mr-2"></i>
+                    <span>Vehículo entrante</span>
+                </div>
+                <span class="text-xs text-gray-500">hace 2s</span>
+            </div>
+            <div class="flex items-center justify-between p-2 bg-blue-50 rounded">
+                <div class="flex items-center">
+                    <i class="fas fa-person text-blue-600 mr-2"></i>
+                    <span>Movimiento detectado</span>
+                </div>
+                <span class="text-xs text-gray-500">hace 5s</span>
+            </div>
+            <div class="flex items-center justify-between p-2 bg-yellow-50 rounded">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                    <span>Posible infracción</span>
+                </div>
+                <span class="text-xs text-gray-500">hace 10s</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controles Avanzados -->
+    <div class="bg-white rounded-xl shadow-sm border p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-sliders-h mr-2 text-purple-500"></i>
+            Controles de Cámara
+        </h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Brillo</label>
+                <input type="range" min="0" max="100" value="75"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Contraste</label>
+                <input type="range" min="0" max="100" value="60"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Saturación</label>
+                <input type="range" min="0" max="100" value="80"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Log de Actividad -->
+<div class="bg-white rounded-xl shadow-sm border p-6 mt-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+        <i class="fas fa-list-alt mr-2 text-orange-500"></i>
+        Log de Actividad de Video
+    </h3>
+    <div class="bg-gray-50 rounded-lg p-4 max-h-40 overflow-y-auto">
+        <div id="video-log" class="space-y-2">
+            <!-- Log entries will be added here -->
+        </div>
+    </div>
+</div>
+</div>
+
+<style>
+    @keyframes pulse-slow {
+
+        0%,
+        100% {
+            opacity: 0.2;
+        }
+
+        50% {
+            opacity: 0.4;
+        }
+    }
+
+    .animate-pulse-slow {
+        animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    class VideoFeed {
+        constructor() {
+            this.simulationRunning = false;
+            this.videoTimer = 0;
+            this.timerInterval = null;
+            this.logEntries = [];
+
+            this.initializeEventListeners();
+            this.addLogEntry('Sistema de video inicializado', 'info');
+        }
+
+        initializeEventListeners() {
+            // Toggle simulation
+            document.getElementById('toggle-simulation').addEventListener('click', () => {
+                this.toggleVideoSimulation();
+            });
+
+            // Fullscreen button
+            document.getElementById('fullscreen-btn').addEventListener('click', () => {
+                this.toggleFullscreen();
+            });
+
+            // Update system time
+            setInterval(() => {
+                document.getElementById('system-update').textContent =
+                    new Date().toLocaleTimeString();
+            }, 1000);
+        }
+
+        toggleVideoSimulation() {
+            const button = document.getElementById('toggle-simulation');
+            const placeholder = document.getElementById('video-placeholder');
+            const simulation = document.getElementById('video-simulation');
+
+            if (this.simulationRunning) {
+                // Stop simulation
+                this.simulationRunning = false;
+                placeholder.classList.remove('hidden');
+                simulation.classList.add('hidden');
+                button.innerHTML = '<i class="fas fa-play mr-2"></i>Iniciar Simulación';
+                button.className = 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition duration-200';
+
+                this.stopTimer();
+                this.addLogEntry('Simulación de video detenida', 'warning');
+            } else {
+                // Start simulation
+                this.simulationRunning = true;
+                placeholder.classList.add('hidden');
+                simulation.classList.remove('hidden');
+                button.innerHTML = '<i class="fas fa-stop mr-2"></i>Detener Simulación';
+                button.className = 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center transition duration-200';
+
+                this.startTimer();
+                this.addLogEntry('Simulación de video iniciada', 'success');
+
+                // Simular detecciones aleatorias
+                this.startRandomDetections();
+            }
+        }
+
+        startTimer() {
+            this.videoTimer = 0;
+            this.timerInterval = setInterval(() => {
+                this.videoTimer++;
+                this.updateTimerDisplay();
+            }, 1000);
+        }
+
+        stopTimer() {
+            if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+            }
+        }
+
+        updateTimerDisplay() {
+            const hours = Math.floor(this.videoTimer / 3600);
+            const minutes = Math.floor((this.videoTimer % 3600) / 60);
+            const seconds = this.videoTimer % 60;
+
+            const timeString =
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            document.getElementById('video-timer').textContent = timeString;
+        }
+
+        startRandomDetections() {
+            // Simular detecciones aleatorias cada 5-15 segundos
+            setInterval(() => {
+                if (this.simulationRunning) {
+                    const events = [
+                        { type: 'vehicle', message: 'Vehículo detectado en zona de entrada', icon: 'car', color: 'green' },
+                        { type: 'person', message: 'Movimiento peatonal detectado', icon: 'person', color: 'blue' },
+                        { type: 'alert', message: 'Posible estacionamiento en área prohibida', icon: 'exclamation-triangle', color: 'yellow' },
+                        { type: 'info', message: 'Análisis de patrón de tráfico completado', icon: 'chart-line', color: 'purple' }
+                    ];
+
+                    const randomEvent = events[Math.floor(Math.random() * events.length)];
+                    this.addLogEntry(randomEvent.message, randomEvent.color);
+                }
+            }, 5000 + Math.random() * 10000);
+        }
+
+        addLogEntry(message, type = 'info') {
+            const logContainer = document.getElementById('video-log');
+            const timestamp = new Date().toLocaleTimeString();
+
+            const typeConfig = {
+                'info': { icon: 'info-circle', color: 'blue' },
+                'success': { icon: 'check-circle', color: 'green' },
+                'warning': { icon: 'exclamation-triangle', color: 'yellow' },
+                'error': { icon: 'times-circle', color: 'red' },
+                'green': { icon: 'car', color: 'green' },
+                'blue': { icon: 'person', color: 'blue' },
+                'yellow': { icon: 'exclamation-triangle', color: 'yellow' },
+                'purple': { icon: 'chart-line', color: 'purple' }
+            };
+
+            const config = typeConfig[type] || typeConfig.info;
+
+            const logEntry = document.createElement('div');
+            logEntry.className = `flex items-center justify-between text-sm p-2 bg-${config.color}-50 rounded border-l-4 border-${config.color}-500`;
+            logEntry.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${config.icon} text-${config.color}-600 mr-2"></i>
+                    <span class="text-gray-700">${message}</span>
+                </div>
+                <span class="text-xs text-gray-500">${timestamp}</span>
+            `;
+
+            logContainer.appendChild(logEntry);
+
+            // Mantener solo las últimas 10 entradas
+            this.logEntries.push(logEntry);
+            if (this.logEntries.length > 10) {
+                const oldEntry = this.logEntries.shift();
+                if (oldEntry.parentNode) {
+                    oldEntry.parentNode.removeChild(oldEntry);
+                }
+            }
+
+            // Auto-scroll to bottom
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        toggleFullscreen() {
+            const videoContainer = document.querySelector('.bg-black');
+
+            if (!document.fullscreenElement) {
+                if (videoContainer.requestFullscreen) {
+                    videoContainer.requestFullscreen();
+                }
+                this.addLogEntry('Modo pantalla completa activado', 'info');
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+                this.addLogEntry('Modo pantalla completa desactivado', 'info');
+            }
+        }
+    }
+
+    // Initialize video feed when page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        window.videoFeed = new VideoFeed();
+    });
+</script>
+{% endblock %}
